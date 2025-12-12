@@ -219,13 +219,15 @@ const JapanBoxConceptTest = () => {
       }
     }
 
-    // Formspree Submission
-    if (CONFIG.FORMSPREE_ID) {
+    // GAS (Google Apps Script) Submission
+    if (CONFIG.FORM_ENDPOINT) {
       try {
-        const response = await fetch(`https://formspree.io/f/${CONFIG.FORMSPREE_ID}`, {
+        // GAS requires no-cors mode for cross-origin requests
+        await fetch(CONFIG.FORM_ENDPOINT, {
           method: 'POST',
+          mode: 'no-cors', // 重要：GASはno-corsモード必須
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'text/plain;charset=utf-8', // 重要：GASで受け取りやすい形式に変更
           },
           body: JSON.stringify({
             email: email,
@@ -234,18 +236,17 @@ const JapanBoxConceptTest = () => {
           })
         });
         
-        if (response.ok) {
-          setSubmitted(true);
-        } else {
-          alert("Something went wrong. Please try again.");
-        }
+        // no-cors returns opaque response, so we can't check .ok
+        // We assume it worked.
+        console.log("Form submitted to GAS");
+        setSubmitted(true);
       } catch (error) {
         console.error("Submission Error", error);
-        // Fallback for demo if Formspree fails or not set
+        // Fallback: show success anyway
         setSubmitted(true);
       }
     } else {
-      // Demo mode if ID not set
+      // Demo mode
       setTimeout(() => {
         setSubmitted(true);
       }, 500);
