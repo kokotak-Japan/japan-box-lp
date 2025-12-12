@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-// 修正: 使っていない ChevronRight を削除しました
-import { Leaf, Flame, Heart, Sprout, Soup, Tv, X, Check, BookOpen, Hammer, Clock } from 'lucide-react';
+import { Leaf, Flame, Heart, Sprout, Soup, Tv, X, Check, BookOpen, Hammer, Clock, Shield } from 'lucide-react';
 
 // ==========================================
-// 🛠 CTO設定エリア: ここにIDを入れるだけ！
+// 🛠 CTO設定エリア: IDを入れてください！
 // ==========================================
 const CONFIG = {
-  // Google Analytics 4
-  GA_ID: 'G-WV1R8H7CV6',  // ← ここに貼り付け！
+  // Google Analytics 4 (測定ID: G-XXXXXXXXXX)
+  GA_ID: 'G-WV1R8H7CV6', 
   
   // Meta (Facebook) Pixel (ID: 123456789012345)
   PIXEL_ID: '', 
   
+  // Formspree Form ID (例: xmqbnzqj)
+  // https://formspree.io/ で取得したIDをここに入れてください
+  // ※有料プランにすると、管理画面からCSVで「どの箱を選んだか」もダウンロードできます！
+  FORMSPREE_ID: '', 
+
   // ローンチまでの日数
   DAYS_TO_LAUNCH: 4 
 };
 
-// TypeScript用の型定義
 interface Box {
   id: string;
   category: string;
@@ -30,7 +33,6 @@ interface Box {
   tags: string[];
 }
 
-// windowオブジェクトの型拡張
 declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,17 +51,17 @@ const JapanBoxConceptTest = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // 1. URLパラメータの取得
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
       if (tabParam && ['wellness', 'gourmet'].includes(tabParam)) {
         setActiveTab(tabParam);
       }
 
-      // 2. Google Analyticsのロード
       if (CONFIG.GA_ID) {
         const script = document.createElement('script');
         script.src = `https://www.googletagmanager.com/gtag/js?id=${CONFIG.GA_ID}`;
@@ -70,12 +72,10 @@ const JapanBoxConceptTest = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         window.gtag = function(...args: any[]){ window.dataLayer?.push(args); };
         
-        // 修正: TSエラー回避のため ?. を使用
         window.gtag?.('js', new Date());
         window.gtag?.('config', CONFIG.GA_ID);
       }
 
-      // 3. Facebook Pixelのロード
       if (CONFIG.PIXEL_ID) {
         if (!window.fbq) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,7 +105,6 @@ const JapanBoxConceptTest = () => {
           window.fbq = n;
         }
         
-        // 修正: TSエラー回避のため ?. を使用
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         window.fbq?.('init', CONFIG.PIXEL_ID);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -114,7 +113,6 @@ const JapanBoxConceptTest = () => {
     }
   }, []);
 
-  // 6つのボックス定義
   const boxes: Box[] = [
     {
       id: 'zen',
@@ -169,11 +167,10 @@ const JapanBoxConceptTest = () => {
       category: 'gourmet',
       title: 'Regional Ramen Tour',
       subtitle: 'Hokkaido to Okinawa',
-      description: '"Experience the true diversity of Japanese Ramen. From Hokkaido to Okinawa. Authentic regional bowls with premium broth and noodles that rival your favorite ramen shop.',
+      description: 'Experience the true diversity of Japanese Ramen. From rich Hokkaido Miso to creamy Hakata Tonkotsu. Authentic regional bowls with premium broth and chewy noodles that rival your favorite ramen shop.',
       icon: <Soup className="w-6 h-6" />,
       color: 'bg-red-950',
       accent: 'text-red-400',
-      // ↓ ご指定の写真（卵入りラーメン）のDirect Link
       image: 'https://images.unsplash.com/photo-1749957596846-c6595328a118?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
       tags: ['Comfort Food', 'Noodles', 'Authentic']
     },
@@ -202,10 +199,14 @@ const JapanBoxConceptTest = () => {
     setSubmitted(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedBox) return;
     
-    if (typeof window !== 'undefined' && selectedBox) {
+    setIsSubmitting(true);
+
+    // Tracking
+    if (typeof window !== 'undefined') {
       if (window.gtag) {
         window.gtag?.('event', 'generate_lead', { 
           box_preference: selectedBox.title 
@@ -219,10 +220,40 @@ const JapanBoxConceptTest = () => {
         });
       }
     }
+
+    // Formspree Submission
+    if (CONFIG.FORMSPREE_ID) {
+      try {
+        const response = await fetch(`https://formspree.io/f/${CONFIG.FORMSPREE_ID}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            box_preference: selectedBox.title,
+            timestamp: new Date().toISOString()
+          })
+        });
+        
+        if (response.ok) {
+          setSubmitted(true);
+        } else {
+          alert("Something went wrong. Please try again.");
+        }
+      } catch (error) {
+        console.error("Submission Error", error);
+        // Fallback for demo if Formspree fails or not set
+        setSubmitted(true);
+      }
+    } else {
+      // Demo mode if ID not set
+      setTimeout(() => {
+        setSubmitted(true);
+      }, 500);
+    }
     
-    setTimeout(() => {
-      setSubmitted(true);
-    }, 500);
+    setIsSubmitting(false);
   };
 
   const filteredBoxes = activeTab === 'all' 
@@ -230,7 +261,7 @@ const JapanBoxConceptTest = () => {
     : boxes.filter(box => box.category === activeTab);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col">
       
       {/* Urgency Banner */}
       <div className="bg-slate-900 text-white py-2 px-4 text-center text-sm font-bold tracking-wide flex items-center justify-center gap-2">
@@ -289,7 +320,7 @@ const JapanBoxConceptTest = () => {
       </header>
 
       {/* The Grid */}
-      <section className="py-12 px-6 bg-slate-50 min-h-[500px]">
+      <section className="py-12 px-6 bg-slate-50 min-h-[500px] flex-grow">
         <div className="max-w-7xl mx-auto">
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
@@ -377,6 +408,54 @@ const JapanBoxConceptTest = () => {
         </div>
       </section>
 
+      {/* Footer with Privacy Policy */}
+      <footer className="bg-slate-900 py-8 text-center text-slate-500 text-sm">
+        <p>&copy; 2025 Japan Box Project. All rights reserved.</p>
+        <button 
+          onClick={() => setShowPrivacy(true)}
+          className="mt-2 text-slate-400 hover:text-white underline flex items-center justify-center gap-1 mx-auto"
+        >
+          <Shield className="w-3 h-3" /> Privacy Policy
+        </button>
+      </footer>
+
+      {/* Privacy Policy Modal */}
+      {showPrivacy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative">
+            <button 
+              onClick={() => setShowPrivacy(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-2xl font-bold mb-4">Privacy Policy</h2>
+            <div className="text-slate-600 space-y-4 text-sm leading-relaxed">
+              <p><strong>Last Updated: Dec 2025</strong></p>
+              <p>This Privacy Policy describes how Japan Box Project collects, uses, and discloses your Personal Information when you join our waitlist.</p>
+              
+              <h3 className="font-bold text-slate-800">1. Information We Collect</h3>
+              <p>We only collect your email address and your box preference when you voluntarily sign up for our waitlist. We do not collect payment information at this stage.</p>
+
+              <h3 className="font-bold text-slate-800">2. How We Use Your Information</h3>
+              <p>We use your email address solely to notify you when our product launches or to provide updates regarding the Japan Box Project. We do not sell your data to third parties.</p>
+
+              <h3 className="font-bold text-slate-800">3. Data Security</h3>
+              <p>We implement reasonable security measures to protect your information. Your data is processed via Formspree, a secure third-party form handling service.</p>
+
+              <h3 className="font-bold text-slate-800">4. Contact Us</h3>
+              <p>If you have any questions about this Privacy Policy, please contact us at <strong>amachan@ai2i.jp</strong> (Please replace with your actual email).</p>
+            </div>
+            <button 
+              onClick={() => setShowPrivacy(false)}
+              className="mt-8 w-full py-3 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal / Fake Door Form */}
       {selectedBox && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -426,9 +505,10 @@ const JapanBoxConceptTest = () => {
                     </div>
                     <button 
                       type="submit"
-                      className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-red-600/20"
+                      disabled={isSubmitting}
+                      className={`w-full py-3 text-white font-bold rounded-lg transition-colors shadow-lg shadow-red-600/20 ${isSubmitting ? 'bg-slate-400 cursor-wait' : 'bg-red-600 hover:bg-red-700'}`}
                     >
-                      Join Waitlist & Secure Spot
+                      {isSubmitting ? 'Securing Spot...' : 'Join Waitlist & Secure Spot'}
                     </button>
                     <p className="text-center text-xs text-slate-400">
                       We'll email you the secret purchase link on launch day.
