@@ -11,10 +11,8 @@ const CONFIG = {
   // Meta (Facebook) Pixel (ID: 123456789012345)
   PIXEL_ID: '', 
   
-  // Formspree Form ID (例: xmqbnzqj)
-  // https://formspree.io/ で取得したIDをここに入れてください
-  // ※有料プランにすると、管理画面からCSVで「どの箱を選んだか」もダウンロードできます！
-  FORMSPREE_ID: '', 
+  // Form ID (例: xmqbnzqj)
+  FORM_ENDPOINT: 'https://script.google.com/macros/s/AKfycbw1U0GZjl1_-EDYmNl4pKs6Ib6kJPqEjEeNLiH_ivN5jfhvgNbx2xs3hmq6aZx9Yv4uFA/exec',
 
   // ローンチまでの日数
   DAYS_TO_LAUNCH: 4 
