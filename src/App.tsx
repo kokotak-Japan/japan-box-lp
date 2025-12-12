@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Flame, Heart, Sprout, Soup, Tv, ChevronRight, X, Check, BookOpen, Hammer, Clock } from 'lucide-react';
+// 修正: 使っていない ChevronRight を削除しました
+import { Leaf, Flame, Heart, Sprout, Soup, Tv, X, Check, BookOpen, Hammer, Clock } from 'lucide-react';
 
 // ==========================================
 // 🛠 CTO設定エリア: ここにIDを入れるだけ！
@@ -15,7 +16,7 @@ const CONFIG = {
   DAYS_TO_LAUNCH: 4 
 };
 
-// TypeScript用の型定義（これがないと怒られます）
+// TypeScript用の型定義
 interface Box {
   id: string;
   category: string;
@@ -29,24 +30,26 @@ interface Box {
   tags: string[];
 }
 
-// windowオブジェクトにgtagとfbqが存在することを伝える
+// windowオブジェクトの型拡張
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     gtag?: (...args: any[]) => void;
-    fbq?: (...args: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fbq?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dataLayer?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     _fbq?: any;
   }
 }
 
 const JapanBoxConceptTest = () => {
-  // ここで <Box | null> とすることで「nullかBoxが入るよ」と宣言
   const [selectedBox, setSelectedBox] = useState<Box | null>(null);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
-  // 初期化：URLパラメータ取得 & トラッキングスクリプトのロード
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // 1. URLパラメータの取得
@@ -66,23 +69,29 @@ const JapanBoxConceptTest = () => {
         window.dataLayer = window.dataLayer || [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         window.gtag = function(...args: any[]){ window.dataLayer?.push(args); };
-        window.gtag('js', new Date());
-        window.gtag('config', CONFIG.GA_ID);
+        
+        // 修正: TSエラー回避のため ?. を使用
+        window.gtag?.('js', new Date());
+        window.gtag?.('config', CONFIG.GA_ID);
       }
 
-      // 3. Facebook Pixelのロード (TypeScript対応版)
+      // 3. Facebook Pixelのロード
       if (CONFIG.PIXEL_ID) {
-        // FB Pixelの初期化ロジックを安全な形に展開
         if (!window.fbq) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const n = function(this: any, ...args: any[]) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
           } as any;
           
           if (!window._fbq) window._fbq = n;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           n.push = n;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           n.loaded = true;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           n.version = '2.0';
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           n.queue = [];
           
           const t = document.createElement('script');
@@ -96,8 +105,11 @@ const JapanBoxConceptTest = () => {
           window.fbq = n;
         }
         
-        window.fbq('init', CONFIG.PIXEL_ID);
-        window.fbq('track', 'PageView');
+        // 修正: TSエラー回避のため ?. を使用
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        window.fbq?.('init', CONFIG.PIXEL_ID);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        window.fbq?.('track', 'PageView');
       }
     }
   }, []);
@@ -161,7 +173,7 @@ const JapanBoxConceptTest = () => {
       icon: <Soup className="w-6 h-6" />,
       color: 'bg-red-950',
       accent: 'text-red-400',
-      // ↓ 念のためキャッシュ更新用パラメータ(&v=new)を追加しました！卵入りの写真が表示されるはずです。
+      // ↓ ご指定の写真（卵入りラーメン）のDirect Link
       image: 'https://images.unsplash.com/photo-1749957596846-c6595328a118?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
       tags: ['Comfort Food', 'Noodles', 'Authentic']
     },
@@ -180,9 +192,8 @@ const JapanBoxConceptTest = () => {
   ];
 
   const handleBoxClick = (box: Box) => {
-    // TRACKING: Box Clicked
     if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'select_content', {
+      window.gtag?.('event', 'select_content', {
         content_type: 'box',
         item_id: box.id
       });
@@ -194,23 +205,21 @@ const JapanBoxConceptTest = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // TRACKING: Lead Submitted (登録完了イベント)
     if (typeof window !== 'undefined' && selectedBox) {
-      // Google Analytics
       if (window.gtag) {
-        window.gtag('event', 'generate_lead', { 
+        window.gtag?.('event', 'generate_lead', { 
           box_preference: selectedBox.title 
         });
       }
-      // Facebook Pixel
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       if (window.fbq) {
-        window.fbq('track', 'CompleteRegistration', {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        window.fbq?.('track', 'CompleteRegistration', {
           content_name: selectedBox.title
         });
       }
     }
     
-    // API Call Simulation
     setTimeout(() => {
       setSubmitted(true);
     }, 500);
