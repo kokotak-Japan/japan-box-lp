@@ -138,7 +138,7 @@ const JapanBoxConceptTest = () => {
       color: 'bg-stone-900',
       accent: 'text-amber-500',
       image: 'https://images.unsplash.com/photo-1617870314635-fc819547ec11?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
-      tags: ['Savory', 'No Sweets', 'Premium']
+      tags: ['Savory', 'Craft', 'Premium']
     },
     {
       id: 'longevity',
@@ -169,7 +169,7 @@ const JapanBoxConceptTest = () => {
       category: 'gourmet',
       title: 'Regional Ramen Tour',
       subtitle: 'Hokkaido to Okinawa',
-      description: 'Forget the supermarket stuff. We deliver restaurant-quality regional ramen bowls from across Japan. Authentic broth and noodles you can make in 5 minutes.',
+      description: '"Experience the true diversity of Japanese Ramen. From Hokkaido to Okinawa. Authentic regional bowls with premium broth and noodles that rival your favorite ramen shop.',
       icon: <Soup className="w-6 h-6" />,
       color: 'bg-red-950',
       accent: 'text-red-400',
