@@ -9,7 +9,7 @@ const CONFIG = {
   GA_ID: 'G-WV1R8H7CV6', 
   
   // Meta (Facebook) Pixel (ID: 123456789012345)
-  PIXEL_ID: '', 
+  PIXEL_ID: '1585984742559528', 
   
   // Form ID (例: xmqbnzqj)
   FORM_ENDPOINT: 'https://script.google.com/macros/s/AKfycbw1U0GZjl1_-EDYmNl4pKs6Ib6kJPqEjEeNLiH_ivN5jfhvgNbx2xs3hmq6aZx9Yv4uFA/exec',
