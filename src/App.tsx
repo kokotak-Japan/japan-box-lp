@@ -15,8 +15,33 @@ const CONFIG = {
   DAYS_TO_LAUNCH: 4 
 };
 
+// TypeScript用の型定義（これがないと怒られます）
+interface Box {
+  id: string;
+  category: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: React.ReactNode;
+  color: string;
+  accent: string;
+  image: string;
+  tags: string[];
+}
+
+// windowオブジェクトにgtagとfbqが存在することを伝える
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+    fbq?: (...args: any[]) => void;
+    dataLayer?: any[];
+    _fbq?: any;
+  }
+}
+
 const JapanBoxConceptTest = () => {
-  const [selectedBox, setSelectedBox] = useState(null);
+  // ここで <Box | null> とすることで「nullかBoxが入るよ」と宣言
+  const [selectedBox, setSelectedBox] = useState<Box | null>(null);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -39,21 +64,38 @@ const JapanBoxConceptTest = () => {
         document.head.appendChild(script);
 
         window.dataLayer = window.dataLayer || [];
-        function gtag(){window.dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', CONFIG.GA_ID);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        window.gtag = function(...args: any[]){ window.dataLayer?.push(args); };
+        window.gtag('js', new Date());
+        window.gtag('config', CONFIG.GA_ID);
       }
 
-      // 3. Facebook Pixelのロード
+      // 3. Facebook Pixelのロード (TypeScript対応版)
       if (CONFIG.PIXEL_ID) {
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
+        // FB Pixelの初期化ロジックを安全な形に展開
+        if (!window.fbq) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const n = function(this: any, ...args: any[]) {
+            n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
+          } as any;
+          
+          if (!window._fbq) window._fbq = n;
+          n.push = n;
+          n.loaded = true;
+          n.version = '2.0';
+          n.queue = [];
+          
+          const t = document.createElement('script');
+          t.async = true;
+          t.src = 'https://connect.facebook.net/en_US/fbevents.js';
+          const s = document.getElementsByTagName('script')[0];
+          if (s && s.parentNode) {
+            s.parentNode.insertBefore(t, s);
+          }
+          
+          window.fbq = n;
+        }
+        
         window.fbq('init', CONFIG.PIXEL_ID);
         window.fbq('track', 'PageView');
       }
@@ -61,7 +103,7 @@ const JapanBoxConceptTest = () => {
   }, []);
 
   // 6つのボックス定義
-  const boxes = [
+  const boxes: Box[] = [
     {
       id: 'zen',
       category: 'wellness',
@@ -137,7 +179,7 @@ const JapanBoxConceptTest = () => {
     }
   ];
 
-  const handleBoxClick = (box) => {
+  const handleBoxClick = (box: Box) => {
     // TRACKING: Box Clicked
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'select_content', {
@@ -149,11 +191,11 @@ const JapanBoxConceptTest = () => {
     setSubmitted(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // TRACKING: Lead Submitted (登録完了イベント)
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && selectedBox) {
       // Google Analytics
       if (window.gtag) {
         window.gtag('event', 'generate_lead', { 
