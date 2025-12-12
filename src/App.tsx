@@ -522,7 +522,7 @@ const JapanBoxConceptTest = () => {
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Spot Secured!</h3>
                 <p className="text-slate-500 mb-6">
                   You are on the list for <strong>{selectedBox.title}</strong>. <br/>
-                  Keep an eye on your inbox next week.
+                  Keep an eye on your inbox.
                 </p>
                 <button 
                   onClick={() => setSelectedBox(null)}
