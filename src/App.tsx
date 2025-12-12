@@ -6,8 +6,8 @@ import { Leaf, Flame, Heart, Sprout, Soup, Tv, X, Check, BookOpen, Hammer, Clock
 // 🛠 CTO設定エリア: ここにIDを入れるだけ！
 // ==========================================
 const CONFIG = {
-  // Google Analytics 4 (測定ID: G-XXXXXXXXXX)
-  GA_ID: '', 
+  // Google Analytics 4
+  GA_ID: 'G-WV1R8H7CV6',  // ← ここに貼り付け！
   
   // Meta (Facebook) Pixel (ID: 123456789012345)
   PIXEL_ID: '', 
