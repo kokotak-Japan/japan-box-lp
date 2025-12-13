@@ -161,7 +161,7 @@ const JapanBoxConceptTest = () => {
       icon: <Soup className="w-6 h-6" />,
       color: 'bg-red-950',
       accent: 'text-red-400',
-      image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=2070&q=80', 
+      image: 'https://images.unsplash.com/photo-1749957596846-c6595328a118?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
       tags: ['Comfort Food', 'Noodles', 'Authentic']
     },
     {
