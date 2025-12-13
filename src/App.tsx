@@ -11,11 +11,14 @@ const CONFIG = {
   // Meta (Facebook) Pixel (ID: 123456789012345)
   PIXEL_ID: '1585984742559528', 
   
-  // Form ID (例: xmqbnzqj)
-  FORM_ENDPOINT: 'https://script.google.com/macros/s/AKfycbw1U0GZjl1_-EDYmNl4pKs6Ib6kJPqEjEeNLiH_ivN5jfhvgNbx2xs3hmq6aZx9Yv4uFA/exec',
+  // フォームの送信先URL (GASのウェブアプリURL)
+  FORM_ENDPOINT: 'https://script.google.com/macros/s/AKfycbw1U0GZjl1_-EDYmNl4pKs6Ib6kJPqEjEeNLiH_ivN5jfhvgNbx2xs3hmq6aZx9Yv4uFA/exec', 
 
   // ローンチまでの日数
-  DAYS_TO_LAUNCH: 4 
+  DAYS_TO_LAUNCH: 4,
+
+  // お問い合わせ先メールアドレス
+  CONTACT_EMAIL: 'contact@ai2i.jp'
 };
 
 interface Box {
@@ -60,20 +63,9 @@ const JapanBoxConceptTest = () => {
         setActiveTab(tabParam);
       }
 
-      if (CONFIG.GA_ID) {
-        const script = document.createElement('script');
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${CONFIG.GA_ID}`;
-        script.async = true;
-        document.head.appendChild(script);
-
-        window.dataLayer = window.dataLayer || [];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        window.gtag = function(...args: any[]){ window.dataLayer?.push(args); };
-        
-        window.gtag?.('js', new Date());
-        window.gtag?.('config', CONFIG.GA_ID);
-      }
-
+      // 🚨 修正: GA4の読み込みコードを削除しました（index.htmlにあるため不要）
+      
+      // 3. Facebook Pixelのロード
       if (CONFIG.PIXEL_ID) {
         if (!window.fbq) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,7 +161,7 @@ const JapanBoxConceptTest = () => {
       icon: <Soup className="w-6 h-6" />,
       color: 'bg-red-950',
       accent: 'text-red-400',
-      image: 'https://images.unsplash.com/photo-1749957596846-c6595328a118?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+      image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=2070&q=80', 
       tags: ['Comfort Food', 'Noodles', 'Authentic']
     },
     {
@@ -187,12 +179,18 @@ const JapanBoxConceptTest = () => {
   ];
 
   const handleBoxClick = (box: Box) => {
+    console.log("Box Clicked:", box.id); // 🔍 確認用ログ
+    
     if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag?.('event', 'select_content', {
+      console.log("Sending event to GA4: select_content"); // 🔍 確認用ログ
+      window.gtag('event', 'select_content', {
         content_type: 'box',
         item_id: box.id
       });
+    } else {
+      console.log("GA4 not found"); // 🔍 GA4がいない場合
     }
+    
     setSelectedBox(box);
     setSubmitted(false);
   };
@@ -206,7 +204,8 @@ const JapanBoxConceptTest = () => {
     // Tracking
     if (typeof window !== 'undefined') {
       if (window.gtag) {
-        window.gtag?.('event', 'generate_lead', { 
+        console.log("Sending event to GA4: generate_lead"); // 🔍 確認用ログ
+        window.gtag('event', 'generate_lead', { 
           box_preference: selectedBox.title 
         });
       }
@@ -222,12 +221,11 @@ const JapanBoxConceptTest = () => {
     // GAS (Google Apps Script) Submission
     if (CONFIG.FORM_ENDPOINT) {
       try {
-        // GAS requires no-cors mode for cross-origin requests
         await fetch(CONFIG.FORM_ENDPOINT, {
           method: 'POST',
-          mode: 'no-cors', // 重要：GASはno-corsモード必須
+          mode: 'no-cors', 
           headers: {
-            'Content-Type': 'text/plain;charset=utf-8', // 重要：GASで受け取りやすい形式に変更
+            'Content-Type': 'text/plain;charset=utf-8', 
           },
           body: JSON.stringify({
             email: email,
@@ -235,18 +233,12 @@ const JapanBoxConceptTest = () => {
             timestamp: new Date().toISOString()
           })
         });
-        
-        // no-cors returns opaque response, so we can't check .ok
-        // We assume it worked.
-        console.log("Form submitted to GAS");
         setSubmitted(true);
       } catch (error) {
         console.error("Submission Error", error);
-        // Fallback: show success anyway
         setSubmitted(true);
       }
     } else {
-      // Demo mode
       setTimeout(() => {
         setSubmitted(true);
       }, 500);
@@ -409,7 +401,7 @@ const JapanBoxConceptTest = () => {
 
       {/* Footer with Privacy Policy */}
       <footer className="bg-slate-900 py-8 text-center text-slate-500 text-sm">
-        <p>&copy; 2025 Japan Box Project. All rights reserved.</p>
+        <p>&copy; 2024 Japan Box Project. All rights reserved.</p>
         <button 
           onClick={() => setShowPrivacy(true)}
           className="mt-2 text-slate-400 hover:text-white underline flex items-center justify-center gap-1 mx-auto"
@@ -430,7 +422,7 @@ const JapanBoxConceptTest = () => {
             </button>
             <h2 className="text-2xl font-bold mb-4">Privacy Policy</h2>
             <div className="text-slate-600 space-y-4 text-sm leading-relaxed">
-              <p><strong>Last Updated: Dec 2025</strong></p>
+              <p><strong>Last Updated: October 2024</strong></p>
               <p>This Privacy Policy describes how Japan Box Project collects, uses, and discloses your Personal Information when you join our waitlist.</p>
               
               <h3 className="font-bold text-slate-800">1. Information We Collect</h3>
@@ -440,10 +432,10 @@ const JapanBoxConceptTest = () => {
               <p>We use your email address solely to notify you when our product launches or to provide updates regarding the Japan Box Project. We do not sell your data to third parties.</p>
 
               <h3 className="font-bold text-slate-800">3. Data Security</h3>
-              <p>We implement reasonable security measures to protect your information. Your data is processed via Formspree, a secure third-party form handling service.</p>
+              <p>We implement reasonable security measures to protect your information.</p>
 
               <h3 className="font-bold text-slate-800">4. Contact Us</h3>
-              <p>If you have any questions about this Privacy Policy, please contact us at <strong>amachan@ai2i.jp</strong> (Please replace with your actual email).</p>
+              <p>If you have any questions about this Privacy Policy, please contact us at <strong>{CONFIG.CONTACT_EMAIL}</strong>.</p>
             </div>
             <button 
               onClick={() => setShowPrivacy(false)}
@@ -523,7 +515,7 @@ const JapanBoxConceptTest = () => {
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Spot Secured!</h3>
                 <p className="text-slate-500 mb-6">
                   You are on the list for <strong>{selectedBox.title}</strong>. <br/>
-                  Keep an eye on your inbox.
+                  Keep an eye on your inbox next week.
                 </p>
                 <button 
                   onClick={() => setSelectedBox(null)}
