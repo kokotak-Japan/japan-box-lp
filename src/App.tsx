@@ -15,7 +15,7 @@ const CONFIG = {
   FORM_ENDPOINT: 'https://script.google.com/macros/s/AKfycbw1U0GZjl1_-EDYmNl4pKs6Ib6kJPqEjEeNLiH_ivN5jfhvgNbx2xs3hmq6aZx9Yv4uFA/exec', 
 
   // ローンチまでの日数
-  DAYS_TO_LAUNCH: 2,
+  DAYS_TO_LAUNCH: 5,
 
   // お問い合わせ先メールアドレス
   CONTACT_EMAIL: 'contact@ai2i.jp'
